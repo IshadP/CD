@@ -1,87 +1,87 @@
-#include <stdio.h>
-#include <string.h>
+// #include <stdio.h>
+// #include <string.h>
 
-char input[100];
-int i = 0;
+// char input[100];
+// int i = 0;
 
-int E();
-int EPrime();
-int T();
-int TPrime();
-int F();
+// int E();
+// int EPrime();
+// int T();
+// int TPrime();
+// int F();
 
-int main() {
-    printf("Recursive Descent Parsing for the following grammar:\n");
-    printf("E -> T E'\nE' -> + T E' | ε\nT -> F T'\nT' -> * F T' | ε\nF -> (E) | id\n");
+// int main() {
+//     printf("Recursive Descent Parsing for the following grammar:\n");
+//     printf("E -> T E'\nE' -> + T E' | ε\nT -> F T'\nT' -> * F T' | ε\nF -> (E) | id\n");
 
-    printf("Enter the string to be checked: ");
-    fgets(input, sizeof(input), stdin);
-    input[strcspn(input, "\n")] = '\0'; 
-    i = 0;
+//     printf("Enter the string to be checked: ");
+//     fgets(input, sizeof(input), stdin);
+//     input[strcspn(input, "\n")] = '\0'; 
+//     i = 0;
 
-    if (E() && (input[i] == '\0')) {
-        printf("String accepted\n");
-    } else {
-        printf("String rejected\n");
-    }
+//     if (E() && (input[i] == '\0')) {
+//         printf("String accepted\n");
+//     } else {
+//         printf("String rejected\n");
+//     }
 
-    return 0;
-}
+//     return 0;
+// }
 
-int E() {
-    if (T()) {
-        return EPrime();
-    }
-    return 0;
-}
+// int E() {
+//     if (T()) {
+//         return EPrime();
+//     }
+//     return 0;
+// }
 
-int EPrime() {
-    if (input[i] == '+') {
-        i++;
-        if (T()) {
-            return EPrime();
-        }
-        return 0;
-    }
-    return 1;  
-}
+// int EPrime() {
+//     if (input[i] == '+') {
+//         i++;
+//         if (T()) {
+//             return EPrime();
+//         }
+//         return 0;
+//     }
+//     return 1;  
+// }
 
-int T() {
-    if (F()) {
-        return TPrime();
-    }
-    return 0;
-}
+// int T() {
+//     if (F()) {
+//         return TPrime();
+//     }
+//     return 0;
+// }
 
-int TPrime() {
-    if (input[i] == '*') {  
-        i++;
-        if (F()) {
-            return TPrime();
-        }
-        return 0;
-    }
-    return 1;  
-}
+// int TPrime() {
+//     if (input[i] == '*') {  
+//         i++;
+//         if (F()) {
+//             return TPrime();
+//         }
+//         return 0;
+//     }
+//     return 1;  
+// }
 
-int F() {
-    if (input[i] == '(') {
-        i++;
-        if (E()) {
-            if (input[i] == ')') {
-                i++;
-                return 1;
-            }
-            return 0;
-        }
-        return 0;
-    } else if ((input[i] >= 'a' && input[i] <= 'z') || 
-               (input[i] >= 'A' && input[i] <= 'Z')) {
-        i++;
-        return 1;
-    }
-    return 0;
-}
+// int F() {
+//     if (input[i] == '(') {
+//         i++;
+//         if (E()) {
+//             if (input[i] == ')') {
+//                 i++;
+//                 return 1;
+//             }
+//             return 0;
+//         }
+//         return 0;
+//     } else if ((input[i] >= 'a' && input[i] <= 'z') || 
+//                (input[i] >= 'A' && input[i] <= 'Z')) {
+//         i++;
+//         return 1;
+//     }
+//     return 0;
+// }
 
 
 // 8a
@@ -194,3 +194,4 @@ int main() {
     input[strcspn(input, "\n")] = '\0';
 
     parse();
+}

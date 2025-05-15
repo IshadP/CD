@@ -2,7 +2,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-
 #define MAX 100
 
 char input[MAX];
@@ -13,30 +12,77 @@ typedef struct {
 } ParsingTableEntry;
 
 ParsingTableEntry parsingTable[5][6];
-
 void fillParsingTable() {
-    strcpy(parsingTable[0][0].production, "T E'");
-    strcpy(parsingTable[0][5].production, "T E'");
-    strcpy(parsingTable[1][1].production, "+ T E'");
+    // E
+    strcpy(parsingTable[0][0].production, "T Q");
+    strcpy(parsingTable[0][3].production, "T Q");
+
+    // E'
+    strcpy(parsingTable[1][1].production, "+ T Q");
+    strcpy(parsingTable[1][4].production, "e");
     strcpy(parsingTable[1][5].production, "e");
-    strcpy(parsingTable[2][0].production, "F T'");
-    strcpy(parsingTable[2][5].production, "F T'");
-    strcpy(parsingTable[3][2].production, "* F T'");
+
+    // T
+    strcpy(parsingTable[2][0].production, "F R");
+    strcpy(parsingTable[2][3].production, "F R");
+
+    // T'
+    strcpy(parsingTable[3][1].production, "e");
+    strcpy(parsingTable[3][2].production, "* F R");
+    strcpy(parsingTable[3][4].production, "e");
     strcpy(parsingTable[3][5].production, "e");
-    strcpy(parsingTable[4][0].production, "( E )");
-    strcpy(parsingTable[4][1].production, "id");
+
+    // F
+    strcpy(parsingTable[4][0].production, "i");
+    strcpy(parsingTable[4][3].production, "( E )");
 }
 
 void printParsingTable() {
     printf("\nParsing Table:\n");
-    printf("Non-Terminals \\ Terminals | i    +    *    (    )    $\n");
-    char terminals[] = {'i', '+', '*', '(', ')', '$'};
-    for (int i = 0; i < 5; i++) {
-        printf(" %-18c |", 'E' + i);
-        for (int j = 0; j < 6; j++) {
-            printf(" %-8s", parsingTable[i][j].production[0] != '\0' ? parsingTable[i][j].production : "-");
+    printf("Non-Terminals \\ Terminals | i     +     *     (     )     $\n");
+
+    char nonTerminals[] = {'E', 'Q', 'T', 'R', 'F'};
+    for (int row = 0; row < 5; row++) {
+        printf(" %-23c |", nonTerminals[row]);
+        for (int col = 0; col < 6; col++) {
+            if (parsingTable[row][col].production[0] != '\0')
+                printf(" %-6s ", parsingTable[row][col].production);
+            else
+                printf(" %-6s ", "-");
         }
         printf("\n");
+    }
+}
+
+int getRow(char nonTerminal) {
+    switch (nonTerminal) {
+        case 'E': return 0;
+        case 'Q': return 1;
+        case 'T': return 2;
+        case 'R': return 3;
+        case 'F': return 4;
+        default: return -1;
+    }
+}
+
+int getCol(char terminal) {
+    switch (terminal) {
+        case 'i': return 0;
+        case '+': return 1;
+        case '*': return 2;
+        case '(': return 3;
+        case ')': return 4;
+        case '$': return 5;
+        default: return -1;
+    }
+}
+
+void pushProduction(char *production, char stack[], int *top) {
+    int len = strlen(production);
+    for (int j = len - 1; j >= 0; j--) {
+        char c = production[j];
+        if (c == ' ' || c == 'e') continue;
+        stack[(*top)++] = c;
     }
 }
 
@@ -46,44 +92,48 @@ void parseInput() {
 
     stack[top++] = '$';
     stack[top++] = 'E';
-    
-    while (stack[top - 1] != '$') {
-        char currentSymbol = stack[top - 1];
-        char currentInput = input[i];
 
-        if (currentSymbol == currentInput) {
+    i = 0;
+    char currentInput = input[i];
+
+    while (top > 0) {
+        char stackTop = stack[top - 1];
+
+        if (stackTop == currentInput) {
             top--;
             i++;
-        } else if (currentSymbol >= 'A' && currentSymbol <= 'Z') {
-            int row = currentSymbol - 'E';
-            int col = currentInput == 'i' ? 0 :
-                      currentInput == '+' ? 1 :
-                      currentInput == '*' ? 2 :
-                      currentInput == '(' ? 3 :
-                      currentInput == ')' ? 4 :
-                      currentInput == '$' ? 5 : -1;
-            
-            if (col != -1 && parsingTable[row][col].production[0] != '\0') {
-                top--;
-                for (int j = strlen(parsingTable[row][col].production) - 1; j >= 0; j--) {
-                    if (parsingTable[row][col].production[j] != 'e') {
-                        stack[top++] = parsingTable[row][col].production[j];
-                    }
-                }
-            } else {
-                printf("Syntax error at position %d\n", i);
+            if (input[i] == '\0')
+                currentInput = '$';
+            else
+                currentInput = input[i];
+        }
+        else if (stackTop >= 'A' && stackTop <= 'Z') {
+            int row = getRow(stackTop);
+            int col = getCol(currentInput);
+            if (row == -1 || col == -1) {
+                printf("Syntax error at position %d: unexpected symbol '%c'\n", i, currentInput);
                 exit(1);
             }
-        } else {
-            printf("Syntax error at position %d\n", i);
+
+            char *production = parsingTable[row][col].production;
+            if (production[0] == '\0') {
+                printf("Syntax error at position %d: no production for %c with input '%c'\n", i, stackTop, currentInput);
+                exit(1);
+            }
+
+            top--;
+            pushProduction(production, stack, &top);
+        }
+        else {
+            printf("Syntax error at position %d: unexpected symbol '%c'\n", i, currentInput);
             exit(1);
         }
     }
 
-    if (input[i] == '$') {
+    if (currentInput == '$') {
         printf("Input string is valid.\n");
     } else {
-        printf("Syntax error: Unexpected end of input.\n");
+        printf("Syntax error: input not fully parsed, stopped at '%c'\n", currentInput);
     }
 }
 
